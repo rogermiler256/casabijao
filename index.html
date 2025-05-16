@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Tour 360 Virtual</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+      <!-- Fondo -->
+      <a-sky id="sky" src="M1.png" rotation="0 -130 0"></a-sky>
+      <a-sky id="sky-fade" visible="false" opacity="0" rotation="0 -130 0"></a-sky>
+
+      <!-- Cámara -->
+      <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <script>
+      const hotspots = {
+        "M1.png": [
+          { img: "M2.png", position: "3 0.01 -3", label: "Ruta hacia el Metaverso del Bijao" },
+          { img: "M3.png", position: "-3 0.01 -3", label: "Bienvenidos al cultivo de Bijao" }
+        ],
+        "M2.png": [
+          { img: "M1.png", position: "-3 0.01 -3", label: "Volver a Entrada" },
+          { img: "M3.png", position: "3 0.01 -3", label: "Visita el Cultivo" }
+        ],
+        "M3.png": [
+          { img: "M1.png", position: "-3 0.01 -3", label: "Volver a Entrada" },
+          { img: "M2.png", position: "3 0.01 -3", label: "Ruta hacia el metaverso" }
+        ]
+      };
+
+      const scene = document.querySelector("a-scene");
+      const sky = document.querySelector("#sky");
+      const skyFade = document.querySelector("#sky-fade");
+
+      function transitionTo(newImg) {
+        skyFade.setAttribute("src", newImg);
+        skyFade.setAttribute("visible", true);
+        skyFade.setAttribute("opacity", 0);
+
+        skyFade.setAttribute("animation__fadein", {
+          property: "material.opacity",
+          from: 0,
+          to: 1,
+          dur: 1000
+        });
+
+        setTimeout(() => {
+          sky.setAttribute("src", newImg);
+          skyFade.setAttribute("visible", false);
+          skyFade.removeAttribute("animation__fadein");
+          createHotspots(newImg);
+        }, 1000);
+      }
+
+      function createHotspots(imageName) {
+        document.querySelectorAll(".hotspot").forEach(el => el.remove());
+        const data = hotspots[imageName];
+        if (!data) return;
+
+        data.forEach(h => {
+          const wrapper = document.createElement("a-entity");
+          wrapper.setAttribute("position", h.position);
+          wrapper.setAttribute("class", "hotspot");
+
+          // Área invisible clickeable
+          const hitArea = document.createElement("a-circle");
+          hitArea.setAttribute("radius", "1");
+          hitArea.setAttribute("rotation", "-90 0 0");
+          hitArea.setAttribute("material", "color: #fff; opacity: 0.001; transparent: true");
+          hitArea.setAttribute("class", "clickable");
+          hitArea.setAttribute("data-img", h.img);
+          hitArea.addEventListener("click", () => transitionTo(h.img));
+
+          // Anillo exterior
+          const ring1 = document.createElement("a-ring");
+          ring1.setAttribute("radius-inner", "0.5");
+          ring1.setAttribute("radius-outer", "0.7");
+          ring1.setAttribute("color", "#ffffff");
+          ring1.setAttribute("rotation", "-90 0 0");
+          ring1.setAttribute("material", "shader: flat");
+          ring1.setAttribute("animation", {
+            property: "scale",
+            dir: "alternate",
+            dur: 1000,
+            loop: true,
+            to: "1.2 1.2 1.2",
+            easing: "easeInOutSine"
+          });
+
+          // Anillo interior
+          const ring2 = document.createElement("a-ring");
+          ring2.setAttribute("radius-inner", "0.3");
+          ring2.setAttribute("radius-outer", "0.45");
+          ring2.setAttribute("color", "#ffffff");
+          ring2.setAttribute("rotation", "-90 0 0");
+          ring2.setAttribute("material", "shader: flat");
+          ring2.setAttribute("animation", {
+            property: "scale",
+            dir: "alternate",
+            dur: 1000,
+            loop: true,
+            to: "1.15 1.15 1.15",
+            easing: "easeInOutSine"
+          });
+
+          // Texto en vertical y flotante
+          const label = document.createElement("a-text");
+          label.setAttribute("value", h.label);
+          label.setAttribute("align", "center");
+          label.setAttribute("color", "#FFF");
+          label.setAttribute("position", "0 1 0"); // altura
+          label.setAttribute("look-at", "#cam");
+          label.setAttribute("width", "4");
+
+
+          wrapper.appendChild(hitArea);
+          wrapper.appendChild(ring1);
+          wrapper.appendChild(ring2);
+          wrapper.appendChild(label);
+          scene.appendChild(wrapper);
+        });
+      }
+
+      window.addEventListener("load", () => {
+        createHotspots("M1.png");
+      });
+    </script>
+  </body>
+</html>
